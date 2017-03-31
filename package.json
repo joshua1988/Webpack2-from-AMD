@@ -1,0 +1,41 @@
+{
+  "name": "webpack2-from-amd",
+  "version": "1.0.0",
+  "description": "convert the require js to webpack",
+  "main": "index.js",
+  "dependencies": {
+    "backbone": "^1.3.3",
+    "file-loader": "^0.10.1",
+    "image-webpack-loader": "^3.3.0",
+    "jquery": "^3.2.1",
+    "jquery-mobile": "^1.4.1",
+    "requirejs-text": "^2.0.15",
+    "svg-inline-loader": "^0.7.1",
+    "svgo": "^0.7.2",
+    "svgo-loader": "^1.2.1",
+    "underscore": "^1.8.3",
+    "webpack": "^2.3.2"
+  },
+  "devDependencies": {
+    "css-loader": "^0.28.0",
+    "style-loader": "^0.16.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joshua1988/Webpack2-from-AMD.git"
+  },
+  "keywords": [
+    "webpack2",
+    "backbonejs",
+    "amd"
+  ],
+  "author": "captain_pangyo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/joshua1988/Webpack2-from-AMD/issues"
+  },
+  "homepage": "https://github.com/joshua1988/Webpack2-from-AMD#readme"
+}
