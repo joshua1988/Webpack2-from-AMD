@@ -12,10 +12,10 @@
 "use strict";
 
 /**
- * GlueJS는 Backbone을 확장시킨 프레임워크로 모듈화된 구조, View의 자동화, 
+ * GlueJS는 Backbone을 확장시킨 프레임워크로 모듈화된 구조, View의 자동화,
  * 구조적인 이벤트 처리와 바인딩, 디버깅 등 복잡한 JavaScript Application을 MVC 패턴 형태로
  * 구현할 수 있도록 여러 기능들을 제공한다.
- * 
+ *
  * @namespace GlueJS는 Backbone을 확장시킨 프레임워크로 모듈화된 구조, View의 자동화,
  * 구조적인 이벤트 처리와 바인딩, 디버깅 등 복잡한 JavaScript Application을 MVC 패턴 형태로
  * 구현할 수 있도록 여러 기능들을 제공한다.
@@ -29,9 +29,9 @@ var GlueJS = {
     VERSION: '1.0.0',
     /**
      * Application에서 템플릿을 처리할 모듈을 설정한다.
-     * <br>* <a target='_blank' href='http://underscorejs.org/'><b>underscore-template</b></a> : 
+     * <br>* <a target='_blank' href='http://underscorejs.org/'><b>underscore-template</b></a> :
      * Underscore.js에서 제공하는 템플릿 모듈이며 GlueJS의 Default모듈
-     * <br>* <a target='_blank' href='http://underscorejs.org/'><b>underscore-selector-template</b></a> : 
+     * <br>* <a target='_blank' href='http://underscorejs.org/'><b>underscore-selector-template</b></a> :
      * selector를 이용하여 underscore-template을 로딩하는 템플릿 모듈
      * <br>* <a target='_blank' href='http://handlebarsjs.com/'><b>handlebars-template</b></a> : Mustache를 기반으로 구현한 템플릿 모듈
      * <br>* <b>javascript-template</b> : View에 정의한 javascript를 로딩하는 템플릿 모듈
@@ -235,15 +235,15 @@ GlueJS.loadModule = function(moduleName, loadType, valueObj){
 };
 
 GlueJS.loadFunction = function(moduleName){
-	
+
 	return GlueJS.loadModule(moduleName, false);
-	
+
 };
 
 GlueJS.loadSingleModule = function(moduleName){
-	
+
 	return GlueJS.loadModule(moduleName);
-	
+
 };
 
 /**
@@ -279,7 +279,7 @@ GlueJS.Loader = function(options) {
     if(options.collectionSetModel) {
         collectionSetModelKeys = _.keys(options.collectionSetModel);
     }
-    
+
 
     if(options.templates){
         _.map(options.templates, function(templateName){
@@ -310,7 +310,39 @@ GlueJS.Loader = function(options) {
         controllerFullNames.push('controllers/' + options.controller);
     }
 
-    require(templateFullNames, function() {
+
+    // templateFullNames
+    _.each(arguments, function(module, index){
+        if(typeof module === 'string') {
+            GlueJS.MODULES[templateNames[index]] = module;
+        }
+    });
+
+    _.each(arguments, function(module, index){
+        GlueJS.MODULES[modelNames[index]] = new module();
+    });
+
+    _.each(arguments, function(module, index){
+        if(_.contains(options.collectionSetModel, collectionNames[index])){
+            module.prototype.model = GlueJS.loadModule(options.collectionSetModel[collectionNames[index]]).constructor;
+        }
+        GlueJS.MODULES[collectionNames[index]] = new module();
+    });
+
+    _.each(arguments, function(module, index){
+        if(_.contains(viewSetModelKeys, viewNames[index])){
+            module.prototype.model = GlueJS.loadModule(options.viewSetModel[viewNames[index]]);
+        }
+        if(_.contains(viewSetCollectionKeys, viewNames[index])){
+            module.prototype.collection = GlueJS.loadModule(options.viewSetCollection[viewNames[index]]);
+        }
+
+        GlueJS.MODULES[viewNames[index]] = new module();
+    });
+
+    // Original
+    require.ensure(templateFullNames, function() {
+
         if(arguments.length == 1){
             GlueJS.MODULES[templateNames] = arguments[0];
         } else {
@@ -320,7 +352,7 @@ GlueJS.Loader = function(options) {
                 }
             });
         }
-        require(modelFullNames, function() {
+        require.ensure(modelFullNames, function() {
             if(arguments.length == 1){
                 GlueJS.MODULES[modelNames] = new arguments[0]();
             } else {
@@ -328,7 +360,7 @@ GlueJS.Loader = function(options) {
                     GlueJS.MODULES[modelNames[index]] = new module();
                 });
             }
-            require(collectionFullNames, function() {
+            require.ensure(collectionFullNames, function() {
                 if(arguments.length == 1){
                     if(_.contains(collectionSetModelKeys, collectionNames)){
                             arguments[0].prototype.model = GlueJS.loadModule(options.collectionSetModel[collectionNames]).constructor;
@@ -342,7 +374,7 @@ GlueJS.Loader = function(options) {
                         GlueJS.MODULES[collectionNames[index]] = new module();
                     });
                 }
-                require(viewFullNames, function() {
+                require.ensure(viewFullNames, function() {
                     if(arguments.length == 1){
                         if(_.contains(viewSetModelKeys, viewNames)){
                             arguments[0].prototype.model = GlueJS.loadModule(options.viewSetModel[viewNames]);
@@ -359,11 +391,11 @@ GlueJS.Loader = function(options) {
                             if(_.contains(viewSetCollectionKeys, viewNames[index])){
                                 module.prototype.collection = GlueJS.loadModule(options.viewSetCollection[viewNames[index]]);
                             }
-                            
+
                             GlueJS.MODULES[viewNames[index]] = new module();
                         });
                     }
-                    require(controllerFullNames, function() {
+                    require.ensure(controllerFullNames, function() {
                         if(arguments.length == 1){
                             GlueJS.MODULES[controllerNames] = new arguments[0]();
                         }
@@ -376,83 +408,10 @@ GlueJS.Loader = function(options) {
     return deferred.promise();
 };
 
-
-/**
- * 모델 객체를 추가 저장한다.
- * @param {string} modelName 모델 객체명
- * @param {function} callback 추가 저장 후 실행할 function
- * @returns {void}
- * @memberOf GlueJS.Loader#
- * @example
-<b>GlueJS.addModel</b>('HelloWorldModel', function(model) {
-    GlueJS.log(model);
-});
- */
-GlueJS.addModel = function(modelName, callback) {
-    require(['models/' + modelName], function(modelModule) {
-        GlueJS.MODULES[modelName] = new modelModule();
-        if (callback) {
-            callback(GlueJS.MODULES[modelName]);
-        }
-    });
-};
-
-/**
- * 뷰 객체를 추가 저장한다.
- * @param {string} viewName 뷰 객체명
- * @param {function} callback 추가 저장 후 실행할 function
- * @returns {void}
- * @memberOf GlueJS.Loader#
- * @example
-<b>GlueJS.addView</b>('HelloWorldVire', function(view) {
-    GlueJS.log(view);
-});
- */
-GlueJS.addView = function(viewName, callback) {
-    //$.when(GlueJS.__addView(viewName)).then(callback);
-    /* callback으로 할거야?*/
-    require(['views/' + viewName], function(viewModule) {
-        GlueJS.MODULES[viewName] = new viewModule();
-
-        if(callback) {
-            callback(GlueJS.MODULES[viewName]);
-        }
-    });
-};
-
-/**
- * 템플릿을 추가 저장한다.
- * @param {string} templateName 템플릿명
- * @returns {void}
- * @memberOf GlueJS.Loader#
- * @example
-<b>GlueJS.addTemplate</b>('helloWorldTemplate');
-GlueJS.log(GlueJS.loadModule('helloWorldTemplate'));
- */
-GlueJS.addTemplate = function(templateName) {
-    var template = require(['text!templates/' + templateName +'.html']);
-    GlueJS.MODULES[templateName] = template;
-};
-
-/**
- * 저장된 객체를 삭제한다.
- * @param {string} moduleName 모듈 객체명
- * @return {object} 모듈 객체
- * @memberOf GlueJS.Loader#
- * @example
-<b>GlueJS.removeModule</b>('HelloWorldView');
- */
-GlueJS.removeModule = function(moduleName){
-    if(moduleName && GlueJS.MODULES.hasOwnProperty(moduleName)) {
-        GlueJS.MODULES[moduleName] = null;
-        delete GlueJS.MODULES[moduleName];
-    }
-};
-
 /**
  * Application을 초기화 하고 설정한 객체를 로딩하며 Route, Event, Controller를 설정한다.
  * @class Application을 초기화 하고 설정한 객체를 로딩하며 Route, Event, Controller를 설정한다.
- * @constructor 
+ * @constructor
  * @returns {void}
  * @param {object} options 설정 option객체
  * @param {array} options.subApps 고려중
@@ -502,34 +461,34 @@ GlueJS.App = function(options) {
     this._initCallbacks = new GlueJS.Callbacks();
     _.extend(this, options);
 
-    if(!GlueJS.notUsejQueryMobile){
-        require([
-            'jquerymobile'
-        ], function() {
-            // $.mobile.ajaxEnabled = false;
-            $.mobile.linkBindingEnabled = false;
-            $.mobile.hashListeningEnabled = false;
-            // $.mobile.pushStateEnabled = false;
-            $.mobile.changePage.defaults.changeHash = false;
-            
-            $.mobile.loading('show', {
-                text: 'Initializing...',
-                textVisible: true,
-                theme: 'b',
-                html: ""
-            });
-        });
-    }
+    // if(!GlueJS.notUsejQueryMobile){
+    //     require([
+    //         'jquerymobile'
+    //     ], function() {
+    //         // $.mobile.ajaxEnabled = false;
+    //         $.mobile.linkBindingEnabled = false;
+    //         $.mobile.hashListeningEnabled = false;
+    //         // $.mobile.pushStateEnabled = false;
+    //         $.mobile.changePage.defaults.changeHash = false;
+    //
+    //         $.mobile.loading('show', {
+    //             text: 'Initializing...',
+    //             textVisible: true,
+    //             theme: 'b',
+    //             html: ""
+    //         });
+    //     });
+    // }
     GlueJS.AppRouter = new GlueJS.Router();
 
     GlueJS.Loader(options).done(function(){
         var controller = GlueJS.loadModule(options.controller);
         GlueJS.AppRouter.processAppRoutes(controller, options.appRoutes);
         GlueJS.AppRouter.processAppEvents(controller, options.appEvents);
-        
+
         var subAppsCount = 0;
         if(options.subApps && options.subApps.length > 0) {
-            require(options.subApps, function() {
+            require.ensure(options.subApps, function() {
                 _.each(arguments, function(subApp) {
                     GlueJS.Loader(subApp).done(function(){
                         var controller = GlueJS.loadModule(subApp.controller);
@@ -537,23 +496,23 @@ GlueJS.App = function(options) {
                         GlueJS.AppRouter.processAppEvents(controller, subApp.appEvents);
                         if(++subAppsCount == options.subApps.length) {
                             GlueJS.history.start();
-                            if(!GlueJS.notUsejQueryMobile){
-                                $.mobile.loading('hide');
-                            }
+                            // if(!GlueJS.notUsejQueryMobile){
+                            //     $.mobile.loading('hide');
+                            // }
                         }
                     });
                 });
             });
         } else {
             GlueJS.history.start();
-            if(!GlueJS.notUsejQueryMobile){
-                $.mobile.loading('hide');
-            }
+            // if(!GlueJS.notUsejQueryMobile){
+            //     $.mobile.loading('hide');
+            // }
         }
     });
 
     if(GlueJS.validationInit) {
-        GlueJS.Validation();    
+        GlueJS.Validation();
     }
     this.triggerMethod = GlueJS.triggerMethod;
 };
@@ -594,7 +553,7 @@ GlueJS.App.extend = GlueJS.extend;
  * Application에서 설정한 URL변경, 이벤트 발생 정보에 대한 처리 method를 정의하고 View와 Model을 제어한다.
  * @class Application에서 설정한 URL변경, 이벤트 발생 정보에 대한 처리 method를 정의하고 View와 Model을 제어한다.
  * @param {object} options 설정 option객체
- * @constructor 
+ * @constructor
  * @returns {void}
  * @see GlueJS.App
  * @example
@@ -813,10 +772,10 @@ GlueJS.View = Backbone.View.extend(/** @lends GlueJS.View# */{
         GlueJS.MODULES[templateName] = template;
         console.log("already loaded");
     },*/
-    
+
     /**
      * 뷰의 render method를 실행하기 전에 실행한다.
-     * 
+     *
      * @function
      * @param
      * @returns {void}
@@ -828,7 +787,7 @@ define(
             template: GlueJS.loadModule('helloWorldTemplate'),
             <b>onBeforeRender</b>: function() {
                 GlueJS.log('onBeforeRender');
-            }	
+            }
         });
         return HelloWorldView;
     }
@@ -879,7 +838,7 @@ define(
      * 템플릿 Strategy에서 재정의 할 function 초기화
      * @private
      * @param {object} options 설정 option객체
-     * @returns {string} 
+     * @returns {string}
      */
     getTemplate: function() {
         return "";
@@ -892,7 +851,7 @@ define(
         this.$el = $(element);
     },
     /**
-     * 현재 뷰에 다른 뷰 객체를 추가한다. 
+     * 현재 뷰에 다른 뷰 객체를 추가한다.
      * (childView의 요소들은 parentView의 dispose, render의 동작에 의해 자동으로 호출된다.)
      * @param {object} view 뷰 객체
      * @returns {void}
@@ -943,22 +902,16 @@ define(
         if(options) {
             _.extend(this, _.pick(options, 'method'));
         }
-        
+
         var templateName = GlueJS.getOption(this, "template");
         // 3/27(월) 추가
         var templateCopy = GlueJS.loadModule(templateName);
-        
-        
+
+
         // 4/2(목) 추가
         var modelName = GlueJS.getOption(this, "model");
         var collectionName = GlueJS.getOption(this, "collection");
-        
-/*        var model = GlueJS.loadModule(modelName);
-		this['model'] = model;
-        
-        var collection = GlueJS.loadModule(collectionName);
-		this['collection'] = collection;*/
-		
+
         if(typeof modelName !== 'undefined'){
     		console.log("model name : ", modelName);
     		var model = GlueJS.loadModule(modelName);
@@ -970,9 +923,9 @@ define(
         } else {
         	console.log("Alert! you need to set a model or a collection in the view");
         }
-        
+
         switch(this.templateStrategy || GlueJS.templateStrategy) {
-            case "underscore-template" : 
+            case "underscore-template" :
                 this.getTemplate = function(data){
                     return _.template(templateCopy, data);
                 };
@@ -1118,7 +1071,7 @@ GlueJS.loadModule('HelloWorldView').<b>render</b>();
             }
             this.$el.trigger('create');
             $.mobile.resetActivePageHeight();
-        
+
             // select tag에 data-native-ment 속성이 false일 경우
             // jQuery Mobile에서 생성하는 id-button element를 찾아서
             // listbox popup을 여는 event를 등록한다.
@@ -1150,10 +1103,10 @@ GlueJS.loadModule('HelloWorldView').<b>render</b>();
 var _set = Backbone.Collection.prototype.set;
 
 /**
- * Model의 정렬된 집합이며 service property가 있을 경우 Backbone.Service를 이용하여 
+ * Model의 정렬된 집합이며 service property가 있을 경우 Backbone.Service를 이용하여
  * url, targets를 조합하여 Collection의 method로 추가한다.
  * (RESTful방식을 지원하지 않는 서버에서 Backbone의 기능을 사용하도록 지원)
- * @class Model의 정렬된 집합이며 service property가 있을 경우 Backbone.Service를 이용하여 
+ * @class Model의 정렬된 집합이며 service property가 있을 경우 Backbone.Service를 이용하여
  * url, targets를 조합하여 Collection의 method로 추가한다.
  * (RESTful방식을 지원하지 않는 서버에서 Backbone의 기능을 사용하도록 지원)
  * @example
@@ -1173,7 +1126,7 @@ GlueJS.Collection = Backbone.Collection.extend(/** @lends GlueJS.Collection# */{
     /**
      * Backbone.Service 객체 설정<br>
      * Backbone.Service는 서버가 RESTful방식을 제공하지 않을 경우에도
-     * GlueJS의 Collection 또는 Model을 사용할 수 있도록 도와주는 Backbone.js의 플러그인이다. 
+     * GlueJS의 Collection 또는 Model을 사용할 수 있도록 도와주는 Backbone.js의 플러그인이다.
      * @type object
      * @default null
      * @see <a target='_blank' href='https://github.com/mkuklis/backbone.service'>Backbone.Service</a>
@@ -1189,22 +1142,22 @@ define([
                 deptInsert: ["/json.do?ServiceName=ws-dept-service&insert=1", "post"],
                 deptModify: "/json.do?ServiceName=ws-dept-service&modify=1",
                 deptDelete: ["/json.do?ServiceName=ws-dept-service&delete=1", "get"]
-            }           
+            }
         },
         comparator: 'DEPTNO'
     });
     return BackboneServiceCollection;
 });
      */
-	
+
 /*	// 추가
 	model: null,*/
-	
+
     service: null,
     /**
      * Backbone.localStorage 객체 설정<br>
      * Backbone.localStorage는 Browser의 Local Storage 영역에 데이터를 쉽게
-     * 관리 할 수 있도록 도와주는 Backbone.js의 플러그인이다. 
+     * 관리 할 수 있도록 도와주는 Backbone.js의 플러그인이다.
      * @type object
      * @default null
      * @example
@@ -1237,14 +1190,14 @@ define([
 //        console.log("this.model : ", this.model);
 //        var templateCopy = GlueJS.loadModule(this.model);
 //        console.log("templateCopy : ", templateCopy);
-        
+
         var modelName = GlueJS.getOption(this, "model");
 		console.log("model name : ", modelName);
-		
+
 		var model = GlueJS.loadModule(modelName, false);
 		this.model = model;
 
-		
+
 //		console.log("@@@@@@ GlueJS.loadModule(modelName, false) : ", GlueJS.loadModule(modelName, true).url);
         var service = GlueJS.getOption(this, "service");
         console.log("@@@ Service constructor : ", service);
@@ -1256,7 +1209,7 @@ define([
                 url: service.url,
                 targets: service.targets
             });
-            
+
             _.extend(this, backboneService);
         }
     },
@@ -1285,7 +1238,7 @@ define([
 });
 
 /**
- * model에서 idAttributes에 해당하는 속성 값들을 '-'문자와 조합하여 반환한다. 
+ * model에서 idAttributes에 해당하는 속성 값들을 '-'문자와 조합하여 반환한다.
  * @private
  * @param {array} idAttributes model에서 조합하는 속성명
  * @param {object} model 데이터 객체
@@ -1305,12 +1258,12 @@ GlueJS.generateId = function(idAttributes, model) {
 };
 
 /**
- * Application의 데이터 및 데이터와 관련된 로직을 담당하며 
- * service property가 있을 경우 Backbone.Service를 이용하여 url, targets를 조합하여 
+ * Application의 데이터 및 데이터와 관련된 로직을 담당하며
+ * service property가 있을 경우 Backbone.Service를 이용하여 url, targets를 조합하여
  * Model의 method로 추가한다.
  * (RESTful방식을 지원하지 않는 서버에서 Backbone의 기능을 사용하도록 지원)
- * @class Application의 데이터 및 데이터와 관련된 로직을 담당하며 
- * service property가 있을 경우 Backbone.Service를 이용하여 url, targets를 조합하여 
+ * @class Application의 데이터 및 데이터와 관련된 로직을 담당하며
+ * service property가 있을 경우 Backbone.Service를 이용하여 url, targets를 조합하여
  * Model의 method로 추가한다.
  * (RESTful방식을 지원하지 않는 서버에서 Backbone의 기능을 사용하도록 지원)
  * @example
@@ -1327,7 +1280,7 @@ GlueJS.Model = Backbone.Model.extend(/** @lends GlueJS.Model# */{
     /**
      * Backbone.Service 객체 설정<br>
      * Backbone.Service는 서버가 RESTful방식을 제공하지 않을 경우에도
-     * GlueJS의 Collection 또는 Model을 사용할 수 있도록 도와주는 Backbone.js의 플러그인이다. 
+     * GlueJS의 Collection 또는 Model을 사용할 수 있도록 도와주는 Backbone.js의 플러그인이다.
      * @type object
      * @default null
      * @see <a target='_blank' href='https://github.com/mkuklis/backbone.service'>Backbone.Service</a>
@@ -1343,7 +1296,7 @@ define([
                 deptInsert: ["/json.do?ServiceName=ws-dept-service&insert=1", "post"],
                 deptModify: "/json.do?ServiceName=ws-dept-service&modify=1",
                 deptDelete: ["/json.do?ServiceName=ws-dept-service&delete=1", "get"]
-            }           
+            }
         }
     });
     return BackboneServiceModel;
@@ -1353,7 +1306,7 @@ define([
     /**
      * Backbone.localStorage 객체 설정<br>
      * Backbone.localStorage는 Browser의 Local Storage 영역에 데이터를 쉽게
-     * 관리 할 수 있도록 도와주는 Backbone.js의 플러그인이다. 
+     * 관리 할 수 있도록 도와주는 Backbone.js의 플러그인이다.
      * @type object
      * @default null
      * @example
@@ -1397,7 +1350,7 @@ define([
 /**
  * backbone.validation 라이브러리의 error message를 초기화하고 validator 동작을 추가한다.<br>
  * Backbone.Validation은 form을 통하여 사용자가 입력한 내용을 Model 객체에 반영할 때
- * 입력한 값의 유효성을 검사할 수 있도록 도와주는 Backbone.js의 플러그인이다. 
+ * 입력한 값의 유효성을 검사할 수 있도록 도와주는 Backbone.js의 플러그인이다.
  * @class backbone.validation 라이브러리의 error message를 초기화하고 validator 동작을 추가한다.
  * @see GlueJS.validationInit
  * @see GlueJS.View#validation
@@ -1411,7 +1364,7 @@ GlueJS.Validation = function() {
     }).fail(function() {
         GlueJS.debug('glue_validation.json file is not exist, default error messages use.');
     });
-    
+
     _.extend(Backbone.Validation.callbacks, {
         valid: function(view, attr, selector) {
             var $el = view.$('[name=' + attr + ']'),
@@ -1557,7 +1510,7 @@ GlueJS.debugpoint.elapsedTime = function(startName, endName, unit){
  * @class 정의한 템플릿과 데이터를 가지고 임시 생성한 뷰를 이용하여 팝업을 화면에 표시한다.
  * @param {object} options 설정 option객체
  * @param {string} options.popupId popup div id
- * @param {string} options.template 화면에 나타나는 template html 
+ * @param {string} options.template 화면에 나타나는 template html
  * @param {object} options.data 데이터
  * @param {string} options.transition transition
  * @example

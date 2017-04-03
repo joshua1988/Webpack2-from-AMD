@@ -8,3 +8,5 @@ require('./js/libs/jquerymobile.js');
 require('underscore');
 require('backbone');
 require('handlebars');
+require('requirejs-text');
+require('./js/libs/glue.js');
