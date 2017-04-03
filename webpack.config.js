@@ -25,16 +25,26 @@ module.exports = function(env) {
               // ]
             },
             {
+              test: /jquery\-2\.0\.3\.js/,
+              use: [
+                'exports-loader?jQuery',
+                'imports-loader?this=>window'
+              ]
+            },
+            {
               test: /backbone/,
               use: [
                 'expose-loader?Backbone',
                 'imports-loader?this=>window,jquery,underscore'
               ]
             },
-            {test: /glue/, use: [
-              'expose-loader?GlueJS',
-              'imports-loader?jquery,underscore,backbone'
-            ]}
+            // {
+            //   test: /glue/,
+            //   use: [
+            //   'expose-loader?GlueJS',
+            //   'imports-loader?this=>window,jquery,underscore,backbone'
+            //   ]
+            // }
 
             // Require.js
             // 'glue': {
@@ -45,6 +55,7 @@ module.exports = function(env) {
         },
         resolve: {
           alias: {
+            // "jquery" : "./js/libs/jquery.js",
             "jquerymobile" : "./js/libs/jquerymobile.js",
             "handlebars" : "./js/libs/handlebars-v1.3.0.js"
           }
