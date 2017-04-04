@@ -24,11 +24,17 @@ module.exports = function(env) {
               //   'exports-loader?handlebars'
               // ]
             },
+            // {
+            //   test: /jquery\-2\.0\.3\.js/,
+            //   use: [
+            //     'exports-loader?jQuery',
+            //     'imports-loader?this=>window'
+            //   ]
+            // },
             {
-              test: /jquery\-2\.0\.3\.js/,
+              test: /underscore/,
               use: [
-                'exports-loader?jQuery',
-                'imports-loader?this=>window'
+                "expose-loader?_"
               ]
             },
             {
@@ -38,13 +44,13 @@ module.exports = function(env) {
                 'imports-loader?this=>window,jquery,underscore'
               ]
             },
-            // {
-            //   test: /glue/,
-            //   use: [
-            //   'expose-loader?GlueJS',
-            //   'imports-loader?this=>window,jquery,underscore,backbone'
-            //   ]
-            // }
+            {
+              test: /glue/,
+              use: [
+                'expose-loader?GlueJS',
+                // 'imports-loader?this=>window,jquery,underscore,backbone'
+              ]
+            }
 
             // Require.js
             // 'glue': {
@@ -56,9 +62,17 @@ module.exports = function(env) {
         resolve: {
           alias: {
             // "jquery" : "./js/libs/jquery.js",
-            "jquerymobile" : "./js/libs/jquerymobile.js",
-            "handlebars" : "./js/libs/handlebars-v1.3.0.js"
+            // "jquerymobile" : "./js/libs/jquerymobile.js",
+            // "handlebars" : "./js/libs/handlebars-v1.3.0.js"
           }
-        }
+        },
+        plugins: [
+          new webpack.ProvidePlugin({
+            underscore: "underscore",
+            // jquery: "jquery",
+            // backbone: "backbone"
+            // jQuery: "jquery"
+          })
+        ]
     }
 }
