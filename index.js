@@ -10,5 +10,6 @@
 require('./js/libs/jquery.js');
 require('underscore');
 require('backbone');
-require('requirejs-text');
+// require('requirejs-text');
+// require('./js/libs/text.js');
 require('./js/libs/glue.js');

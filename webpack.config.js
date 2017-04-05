@@ -49,6 +49,7 @@ module.exports = function(env) {
               use: [
                 'expose-loader?GlueJS',
                 // 'imports-loader?this=>window,jquery,underscore,backbone'
+                'imports-loader?backbone,underscore,jquery,this=>window'
               ]
             }
 
@@ -68,8 +69,8 @@ module.exports = function(env) {
         },
         plugins: [
           new webpack.ProvidePlugin({
-            underscore: "underscore",
             // jquery: "jquery",
+            underscore: "underscore",
             // backbone: "backbone"
             // jQuery: "jquery"
           })

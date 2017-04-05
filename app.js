@@ -1,4 +1,6 @@
-console.log(GlueJS);
+console.log(Backbone);
+
+// console.log("GlueJS : " , GlueJS);
 
 // var App = new GlueJS.App({
 //             controller: 'Controller',
@@ -20,5 +22,8 @@ console.log(GlueJS);
 //                 'click:#helloworld_btn': 'btn_click'
 //             }
 //         });
-//
-// App.start();
+
+//var App = new GlueJS.App();
+App.start();
+
+console.log(App);
