@@ -13,3 +13,7 @@ require('backbone');
 // require('requirejs-text');
 // require('./js/libs/text.js');
 require('./js/libs/glue.js');
+
+
+var hello = require('./templates/HelloWorldTemplate.html');
+console.log("hello : ", hello);

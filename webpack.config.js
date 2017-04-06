@@ -14,6 +14,9 @@ module.exports = function(env) {
         },
         module: {
           rules: [
+            {
+
+            },
             {test: /\.css$/, exclude: /node_modules/, use: 'svg-inline-loader'},
             {
               test: /\.handlebars$/,
@@ -48,16 +51,18 @@ module.exports = function(env) {
               test: /glue/,
               use: [
                 'expose-loader?GlueJS',
-                // 'imports-loader?this=>window,jquery,underscore,backbone'
                 'imports-loader?Backbone=backbone,_=underscore,jquery,this=>window'
               ]
+            },
+            {
+              test: /\.html$/,
+              use: [ {
+                loader: 'html-loader'
+                // options: {
+                //   minimize: true
+                // }
+              }],
             }
-
-            // Require.js
-            // 'glue': {
-            //     deps: ['jquery', 'underscore', 'backbone', 'handlebars'],
-            //     exports: 'GlueJS'
-            // }
           ]
         },
         resolve: {
