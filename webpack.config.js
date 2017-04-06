@@ -41,7 +41,7 @@ module.exports = function(env) {
               test: /backbone/,
               use: [
                 'expose-loader?Backbone',
-                'imports-loader?this=>window,jquery,underscore'
+                'imports-loader?underscore,jquery,this=>window'
               ]
             },
             {
@@ -49,7 +49,7 @@ module.exports = function(env) {
               use: [
                 'expose-loader?GlueJS',
                 // 'imports-loader?this=>window,jquery,underscore,backbone'
-                'imports-loader?backbone,underscore,jquery,this=>window'
+                'imports-loader?Backbone=backbone,_=underscore,jquery,this=>window'
               ]
             }
 
