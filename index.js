@@ -15,5 +15,8 @@ require('backbone');
 require('./js/libs/glue.js');
 
 
-var hello = require('./templates/HelloWorldTemplate.html');
-console.log("hello : ", hello);
+
+
+
+// var hello = require('./templates/HelloWorldTemplate.html');
+// console.log("hello : ", hello);

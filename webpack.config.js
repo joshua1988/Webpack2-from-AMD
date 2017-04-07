@@ -51,7 +51,7 @@ module.exports = function(env) {
               test: /glue/,
               use: [
                 'expose-loader?GlueJS',
-                'imports-loader?Backbone=backbone,_=underscore,jquery,this=>window'
+                'imports-loader?Backbone=backbone,_=underscore,jquery'
               ]
             },
             {

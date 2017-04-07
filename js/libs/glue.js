@@ -72,6 +72,10 @@ var GlueJS = {
     protoSlice :Array.prototype.slice
 };
 
+console.log("@@ underscore dependency : ", _);
+console.log("@@ Backbone.$ : ", Backbone.$);
+
+
 GlueJS.extend = Backbone.Model.extend;
 
 /**
@@ -234,18 +238,6 @@ GlueJS.loadModule = function(moduleName, loadType, valueObj){
     }
 };
 
-GlueJS.loadFunction = function(moduleName){
-
-	return GlueJS.loadModule(moduleName, false);
-
-};
-
-GlueJS.loadSingleModule = function(moduleName){
-
-	return GlueJS.loadModule(moduleName);
-
-};
-
 /**
  * GlueJS.App에서 설정한 객체들의 인스턴스를 생성하여 저장한다.
  * @class GlueJS.App에서 설정한 객체들의 인스턴스를 생성하여 저장하고 관리한다.
@@ -266,147 +258,139 @@ GlueJS.Loader = function(options) {
     var viewNames = [];
     var controllerFullNames = [];
     var controllerNames = [];
-    var viewSetModelKeys;
-    var viewSetCollectionKeys;
-    var collectionSetModelKeys;
 
-    if(options.viewSetModel) {
-        viewSetModelKeys = _.keys(options.viewSetModel);
-    }
-    if(options.viewSetCollection) {
-        viewSetCollectionKeys = _.keys(options.viewSetCollection);
-    }
-    if(options.collectionSetModel) {
-        collectionSetModelKeys = _.keys(options.collectionSetModel);
-    }
+    // if(options.templates){
+    //     _.map(options.templates, function(templateName){
+    //         templateNames.push(templateName);
+    //         templateFullNames.push('text!templates/' + templateName +'.html');
+    //     });
+    // }
+    // if(options.models) {
+    //     _.map(options.models, function(modelName){
+    //         modelNames.push(modelName);
+    //         modelFullNames.push('models/' + modelName);
+    //     });
+    // }
+    // if(options.collections) {
+    //     _.map(options.collections, function(collectionName){
+    //         collectionNames.push(collectionName);
+    //         collectionFullNames.push('collections/' + collectionName);
+    //     });
+    // }
+    // if(options.views) {
+    //     _.map(options.views, function(viewName){
+    //         viewNames.push(viewName);
+    //         viewFullNames.push('views/' + viewName);
+    //     });
+    // }
+    // if(options.controller) {
+    //     controllerNames.push(options.controller);
+    //     controllerFullNames.push('controllers/' + options.controller);
+    // }
+
+    console.log("templateNames : ", templateNames);
+    console.log("templateFullNames : ", templateFullNames);
 
 
-    if(options.templates){
-        _.map(options.templates, function(templateName){
-            templateNames.push(templateName);
-            templateFullNames.push('text!templates/' + templateName +'.html');
-        });
+    // customized the loading modules based on Webpack 2 - HTML loader
+    if (options.templates) {
+      options.templates.forEach(function (x) {
+        var name = './templates/'+ this.x +'.html';
+        GlueJS.MODULES[x] = require(name);
+      });
     }
-    if(options.models) {
-        _.map(options.models, function(modelName){
-            modelNames.push(modelName);
-            modelFullNames.push('models/' + modelName);
-        });
+    if (options.models) {
+      options.models.forEach(function (x) {
+        var name = './models/'+ this.x;
+        GlueJS.MODULES[x] = require(name);
+      });
     }
     if(options.collections) {
-        _.map(options.collections, function(collectionName){
-            collectionNames.push(collectionName);
-            collectionFullNames.push('collections/' + collectionName);
-        });
+      options.collections.forEach(function (x) {
+        var name = './collections/'+ this.x;
+        GlueJS.MODULES[x] = require(name);
+      });
     }
     if(options.views) {
-        _.map(options.views, function(viewName){
-            viewNames.push(viewName);
-            viewFullNames.push('views/' + viewName);
-        });
+      options.views.forEach(function (x) {
+        var name = './views/'+ this.x;
+        GlueJS.MODULES[x] = require(name);
+      });
     }
     if(options.controller) {
-        controllerNames.push(options.controller);
-        controllerFullNames.push('controllers/' + options.controller);
+      var name = "./controller/"+ options.controller;
+      GlueJS.MODULES[options.controller] = require(name);
     }
+    deferred.resolve();
 
+    // Original Logic
+    // require(templateFullNames, function() {
+    //     if(arguments.length == 1){
+    //         GlueJS.MODULES[templateNames] = arguments[0];
+    //     } else {
+    //         _.each(arguments, function(module, index){
+    //             if(typeof module === 'string') {
+    //                 GlueJS.MODULES[templateNames[index]] = module;
+    //             }
+    //         });
+    //     }
+    //     require(modelFullNames, function() {
+    //         if(arguments.length == 1){
+    //             GlueJS.MODULES[modelNames] = new arguments[0]();
+    //         } else {
+    //             _.each(arguments, function(module, index){
+    //                 GlueJS.MODULES[modelNames[index]] = new module();
+    //             });
+    //         }
+    //         require(collectionFullNames, function() {
+    //             if(arguments.length == 1){
+    //                 if(_.contains(collectionSetModelKeys, collectionNames)){
+    //                         arguments[0].prototype.model = GlueJS.loadModule(options.collectionSetModel[collectionNames]).constructor;
+    //                 }
+    //                 GlueJS.MODULES[collectionNames] = new arguments[0]();
+    //             } else {
+    //                 _.each(arguments, function(module, index){
+    //                     if(_.contains(options.collectionSetModel, collectionNames[index])){
+    //                         module.prototype.model = GlueJS.loadModule(options.collectionSetModel[collectionNames[index]]).constructor;
+    //                     }
+    //                     GlueJS.MODULES[collectionNames[index]] = new module();
+    //                 });
+    //             }
+    //             require(viewFullNames, function() {
+    //                 if(arguments.length == 1){
+    //                     if(_.contains(viewSetModelKeys, viewNames)){
+    //                         arguments[0].prototype.model = GlueJS.loadModule(options.viewSetModel[viewNames]);
+    //                     }
+    //                     if(_.contains(viewSetCollectionKeys, viewNames)){
+    //                         arguments[0].prototype.collection = GlueJS.loadModule(options.viewSetCollection[viewNames]);
+    //                     }
+    //                     GlueJS.MODULES[viewNames] = new arguments[0]();
+    //                 } else {
+    //                     _.each(arguments, function(module, index){
+    //                         if(_.contains(viewSetModelKeys, viewNames[index])){
+    //                             module.prototype.model = GlueJS.loadModule(options.viewSetModel[viewNames[index]]);
+    //                         }
+    //                         if(_.contains(viewSetCollectionKeys, viewNames[index])){
+    //                             module.prototype.collection = GlueJS.loadModule(options.viewSetCollection[viewNames[index]]);
+    //                         }
+    //
+    //                         GlueJS.MODULES[viewNames[index]] = new module();
+    //                     });
+    //                 }
+    //                 require(controllerFullNames, function() {
+    //                     if(arguments.length == 1){
+    //                         GlueJS.MODULES[controllerNames] = new arguments[0]();
+    //                     }
+    //                     deferred.resolve();
+    //                 });
+    //             });
+    //         });
+    //     });
+    // });
 
-    // templateFullNames
-    _.each(arguments, function(module, index){
-        if(typeof module === 'string') {
-            GlueJS.MODULES[templateNames[index]] = module;
-        }
-    });
-
-    _.each(arguments, function(module, index){
-        GlueJS.MODULES[modelNames[index]] = new module();
-    });
-
-    _.each(arguments, function(module, index){
-        if(_.contains(options.collectionSetModel, collectionNames[index])){
-            module.prototype.model = GlueJS.loadModule(options.collectionSetModel[collectionNames[index]]).constructor;
-        }
-        GlueJS.MODULES[collectionNames[index]] = new module();
-    });
-
-    _.each(arguments, function(module, index){
-        if(_.contains(viewSetModelKeys, viewNames[index])){
-            module.prototype.model = GlueJS.loadModule(options.viewSetModel[viewNames[index]]);
-        }
-        if(_.contains(viewSetCollectionKeys, viewNames[index])){
-            module.prototype.collection = GlueJS.loadModule(options.viewSetCollection[viewNames[index]]);
-        }
-
-        GlueJS.MODULES[viewNames[index]] = new module();
-    });
-
-    // Original
-    require.ensure(templateFullNames, function() {
-
-        if(arguments.length == 1){
-            GlueJS.MODULES[templateNames] = arguments[0];
-        } else {
-            _.each(arguments, function(module, index){
-                if(typeof module === 'string') {
-                    GlueJS.MODULES[templateNames[index]] = module;
-                }
-            });
-        }
-        require.ensure(modelFullNames, function() {
-            if(arguments.length == 1){
-                GlueJS.MODULES[modelNames] = new arguments[0]();
-            } else {
-                _.each(arguments, function(module, index){
-                    GlueJS.MODULES[modelNames[index]] = new module();
-                });
-            }
-            require.ensure(collectionFullNames, function() {
-                if(arguments.length == 1){
-                    if(_.contains(collectionSetModelKeys, collectionNames)){
-                            arguments[0].prototype.model = GlueJS.loadModule(options.collectionSetModel[collectionNames]).constructor;
-                    }
-                    GlueJS.MODULES[collectionNames] = new arguments[0]();
-                } else {
-                    _.each(arguments, function(module, index){
-                        if(_.contains(options.collectionSetModel, collectionNames[index])){
-                            module.prototype.model = GlueJS.loadModule(options.collectionSetModel[collectionNames[index]]).constructor;
-                        }
-                        GlueJS.MODULES[collectionNames[index]] = new module();
-                    });
-                }
-                require.ensure(viewFullNames, function() {
-                    if(arguments.length == 1){
-                        if(_.contains(viewSetModelKeys, viewNames)){
-                            arguments[0].prototype.model = GlueJS.loadModule(options.viewSetModel[viewNames]);
-                        }
-                        if(_.contains(viewSetCollectionKeys, viewNames)){
-                            arguments[0].prototype.collection = GlueJS.loadModule(options.viewSetCollection[viewNames]);
-                        }
-                        GlueJS.MODULES[viewNames] = new arguments[0]();
-                    } else {
-                        _.each(arguments, function(module, index){
-                            if(_.contains(viewSetModelKeys, viewNames[index])){
-                                module.prototype.model = GlueJS.loadModule(options.viewSetModel[viewNames[index]]);
-                            }
-                            if(_.contains(viewSetCollectionKeys, viewNames[index])){
-                                module.prototype.collection = GlueJS.loadModule(options.viewSetCollection[viewNames[index]]);
-                            }
-
-                            GlueJS.MODULES[viewNames[index]] = new module();
-                        });
-                    }
-                    require.ensure(controllerFullNames, function() {
-                        if(arguments.length == 1){
-                            GlueJS.MODULES[controllerNames] = new arguments[0]();
-                        }
-                        deferred.resolve();
-                    });
-                });
-            });
-        });
-    });
     return deferred.promise();
 };
+
 
 /**
  * Application을 초기화 하고 설정한 객체를 로딩하며 Route, Event, Controller를 설정한다.
@@ -461,24 +445,29 @@ GlueJS.App = function(options) {
     this._initCallbacks = new GlueJS.Callbacks();
     _.extend(this, options);
 
-    // if(!GlueJS.notUsejQueryMobile){
-    //     require([
-    //         'jquerymobile'
-    //     ], function() {
-    //         // $.mobile.ajaxEnabled = false;
-    //         $.mobile.linkBindingEnabled = false;
-    //         $.mobile.hashListeningEnabled = false;
-    //         // $.mobile.pushStateEnabled = false;
-    //         $.mobile.changePage.defaults.changeHash = false;
-    //
-    //         $.mobile.loading('show', {
-    //             text: 'Initializing...',
-    //             textVisible: true,
-    //             theme: 'b',
-    //             html: ""
-    //         });
-    //     });
-    // }
+//     if(!GlueJS.notUsejQueryMobile){
+//         require([
+//             'jquerymobile'
+//         ], function() {
+//             // $.mobile.ajaxEnabled = false;
+//             $.mobile.linkBindingEnabled = false;
+//             $.mobile.hashListeningEnabled = false;
+//             // $.mobile.pushStateEnabled = false;
+//             $.mobile.changePage.defaults.changeHash = false;
+//
+// //            $.mobile.loading('show', {
+// //                text: 'Initializing...',
+// //                textVisible: true,
+// //                theme: 'b',
+// //                html: ""
+// //            });
+//         });
+//     }
+
+    $.mobile.linkBindingEnabled = false;
+    $.mobile.hashListeningEnabled = false;
+    $.mobile.changePage.defaults.changeHash = false;
+
     GlueJS.AppRouter = new GlueJS.Router();
 
     GlueJS.Loader(options).done(function(){
@@ -486,29 +475,31 @@ GlueJS.App = function(options) {
         GlueJS.AppRouter.processAppRoutes(controller, options.appRoutes);
         GlueJS.AppRouter.processAppEvents(controller, options.appEvents);
 
-        var subAppsCount = 0;
-        if(options.subApps && options.subApps.length > 0) {
-            require.ensure(options.subApps, function() {
-                _.each(arguments, function(subApp) {
-                    GlueJS.Loader(subApp).done(function(){
-                        var controller = GlueJS.loadModule(subApp.controller);
-                        GlueJS.AppRouter.processAppRoutes(controller, subApp.appRoutes);
-                        GlueJS.AppRouter.processAppEvents(controller, subApp.appEvents);
-                        if(++subAppsCount == options.subApps.length) {
-                            GlueJS.history.start();
-                            // if(!GlueJS.notUsejQueryMobile){
-                            //     $.mobile.loading('hide');
-                            // }
-                        }
-                    });
-                });
-            });
-        } else {
-            GlueJS.history.start();
-            // if(!GlueJS.notUsejQueryMobile){
-            //     $.mobile.loading('hide');
-            // }
-        }
+//        var subAppsCount = 0;
+//        if(options.subApps && options.subApps.length > 0) {
+//            require(options.subApps, function() {
+//                _.each(arguments, function(subApp) {
+//                    GlueJS.Loader(subApp).done(function(){
+//                        var controller = GlueJS.loadModule(subApp.controller);
+//                        GlueJS.AppRouter.processAppRoutes(controller, subApp.appRoutes);
+//                        GlueJS.AppRouter.processAppEvents(controller, subApp.appEvents);
+//                        if(++subAppsCount == options.subApps.length) {
+//                            GlueJS.history.start();
+//                            if(!GlueJS.notUsejQueryMobile){
+//                                $.mobile.loading('hide');
+//                            }
+//                        }
+//                    });
+//                });
+//            });
+//        } else {
+//            GlueJS.history.start();
+//            if(!GlueJS.notUsejQueryMobile){
+//                $.mobile.loading('hide');
+//            }
+//        }
+
+        GlueJS.history.start();
     });
 
     if(GlueJS.validationInit) {
@@ -851,32 +842,6 @@ define(
         this.$el = $(element);
     },
     /**
-     * 현재 뷰에 다른 뷰 객체를 추가한다.
-     * (childView의 요소들은 parentView의 dispose, render의 동작에 의해 자동으로 호출된다.)
-     * @param {object} view 뷰 객체
-     * @returns {void}
-     */
-    addChildView: function(view) {
-        if(!_.contains(this.childViews, view)) {
-            this.childViews.push(view);
-        }
-    },
-    /**
-     * 추가된 뷰 객체명을 삭제한다.
-     * @param {object} view 뷰 객체
-     * @returns {void}
-     */
-    removeChildView: function(view) {
-        if(view) {
-            var index = _.indexOf(this.childViews, view);
-            if(index !== -1) {
-                this.childViews.splice(index, 1);
-            }
-        } else {
-            this.childViews = [];
-        }
-    },
-    /**
      * 현재 뷰 객체의 자원을 해제하고 이벤트 리스너를 제거한다.
      * @param {object} options 설정 option객체
      * @returns {void}
@@ -904,16 +869,11 @@ define(
         }
 
         var templateName = GlueJS.getOption(this, "template");
-        // 3/27(월) 추가
         var templateCopy = GlueJS.loadModule(templateName);
-
-
-        // 4/2(목) 추가
         var modelName = GlueJS.getOption(this, "model");
         var collectionName = GlueJS.getOption(this, "collection");
 
         if(typeof modelName !== 'undefined'){
-    		console.log("model name : ", modelName);
     		var model = GlueJS.loadModule(modelName);
     		this['model'] = model;
         } else if (typeof collectionName !== 'undefined') {
@@ -1380,129 +1340,6 @@ GlueJS.Validation = function() {
             }
         }
     });
-};
-
-/**
- * console에 시간을 추가한 로그를 출력한다.
- * @param {string} msg 로그
- * @param {string} prefix 접두구문
- * @returns {void}
- * @memberOf GlueJS.Debug#
- * @example
-<b>GlueJS.log</b>('GlueJS Log');
- */
-GlueJS.log = function(msg, prefix) {
-    window.console = window.console || {
-        log: function() {},
-        error: function() {}
-    };
-    /**
-     * 지정한 자리수보다 적은 값 앞에 0을 붙인다.
-     * @param {number} 날짜 및 시간값
-     * @param {number} 자리수
-     * @returns {string} 0을 붙인 날짜 및 시간값
-     */
-    function set_standard(time, digits) {
-        var zero = '';
-        time = time.toString();
-        if (time.length < digits) {
-            for (var i = 0; i < digits - time.length; i++)
-                zero += '0';
-        }
-        return zero + time;
-    }
-
-    var _today = new Date(),
-        _yyyy = set_standard(_today.getFullYear(), 4),
-        _mm = set_standard(_today.getMonth() + 1, 2),
-        _dd = set_standard(_today.getDate(), 2),
-        _hh = set_standard(_today.getHours(), 2),
-        _mi = set_standard(_today.getMinutes(), 2),
-        _ss = set_standard(_today.getSeconds(), 2),
-        _ms = set_standard(_today.getMilliseconds(), 3);
-
-    console.log(((prefix) ? prefix : "") + _yyyy + '-' + _mm + '-' + _dd + ' ' + _hh + ':' + _mi + ':' + _ss + '.' + _ms + ' ' + msg);
-};
-
-/**
- * Debug여부에 따라 console에 접두구문 [DEBUG]를 더한 로그를 출력한다.
- * @param {string} msg 로그
- * @returns {void}
- * @memberOf GlueJS.Debug#
- * @example
-<b>GlueJS.debug</b>('GlueJS Debug Log');
- */
-GlueJS.debug = function(msg) {
-    if (GlueJS.isDevelopment) {
-        GlueJS.log(msg, "[DEBUG]");
-    }
-};
-
-/**
- * 현재시간을 밀리초 단위로 반환한다.
- * @private
- * @param
- * @returns {number} 현재시간
- */
-GlueJS._getSecs = function() {
-    if (Date.now) {
-        /**@ignore*/
-        GlueJS._getSecs = function() {
-            return Date.now();
-        };
-    } else {
-        /**@ignore*/
-        GlueJS._getSecs = function() {
-            return (new Date).getTime();
-        };
-    }
-    return GlueJS._getSecs();
-};
-
-/**
- * 시간차를 출력 할 지점을 저장한다.
- * @param {string} markName 지점명
- * @returns {void}
- * @memberOf GlueJS.Debug#
- * @example
-<b>GlueJS.debugpoint.mark</b>('point1');
-<b>GlueJS.debugpoint.mark</b>('point2');
- */
-GlueJS.debugpoint.mark = function(markName){
-    GlueJS._markRecs[markName] = GlueJS._getSecs();
-};
-
-/**
- * Debug여부에 따라 저장 된 두 지점의 시간차를 console에 출력한다.
- * @param {string} startName 시작지점
- * @param {string} endName 종료지점
- * @param {string} unit 시간단위 (sec | ms)
- * @returns {number} elapsedTime 시간차
- * @memberOf GlueJS.Debug#
- * @example
-<b>GlueJS.debugpoint.elapsedTime</b>('point1', 'point2');
- */
-GlueJS.debugpoint.elapsedTime = function(startName, endName, unit){
-    if (GlueJS.isDevelopment) {
-        var _startTime = GlueJS._markRecs[startName],
-        _endTime = GlueJS._markRecs[endName];
-        var _elapsedTime;
-        var _unit = GlueJS.debugpoint.timeunit || unit || "ms";
-
-        if(unit && unit != "ms" && unit != "sec") {
-            _unit = GlueJS.debugpoint.timeunit || "ms";
-            console.warn("GlueJS.debugpoint.elaspsedTime function arguments '" + unit + "' is not supported. Only supports 'ms' or 'sec', Change the '" + _unit + "'");
-        }
-
-        _elapsedTime = _endTime - _startTime;
-
-        if(_unit == "sec") {
-            _elapsedTime = _elapsedTime / 1000;
-        }
-
-        GlueJS.debug("POINT [" + startName + " --> " + endName + "] elapsed time : " + _elapsedTime + " " + _unit);
-        return _elapsedTime;
-    }
 };
 
 /**
