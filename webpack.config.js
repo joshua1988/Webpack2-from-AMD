@@ -4,8 +4,10 @@ var path = require('path');
 module.exports = function(env) {
     return {
         entry: {
-          main: './index.js'
-          // vendor: 'moment'
+          main: './index.js',
+          // vendor: [
+          //   'underscore'
+          // ]
         },
         output: {
             // filename: '[name].[chunkhash].js',
@@ -40,20 +42,22 @@ module.exports = function(env) {
                 "expose-loader?_"
               ]
             },
-            {
-              test: /backbone/,
-              use: [
-                'expose-loader?Backbone',
-                'imports-loader?underscore,jquery,this=>window'
-              ]
-            },
-            {
-              test: /glue/,
-              use: [
-                'expose-loader?GlueJS',
-                'imports-loader?Backbone=backbone,_=underscore,jquery'
-              ]
-            },
+            // {
+            //   test: /backbone/,
+            //   use: [
+            //     'expose-loader?Backbone',
+            //     'imports-loader?underscore,jquery,this=>window'
+            //     // 'imports-loader?jquery,this=>window'
+            //   ]
+            // },
+            // {
+            //   test: /glue/,
+            //   use: [
+            //     'expose-loader?GlueJS',
+            //     'imports-loader?Backbone=backbone,_=underscore,jquery,this=>window'
+            //     // 'imports-loader?Backbone=backbone,jquery,this=>window'
+            //   ]
+            // },
             {
               test: /\.html$/,
               use: [ {
@@ -75,7 +79,8 @@ module.exports = function(env) {
         plugins: [
           new webpack.ProvidePlugin({
             // jquery: "jquery",
-            underscore: "underscore",
+            // underscore: "underscore",
+            // _: "underscore",
             // backbone: "backbone"
             // jQuery: "jquery"
           })
