@@ -14,12 +14,10 @@ module.exports = {
 //    		 Underscore O , Backbone O , GlueJS X (Empty object)
 //    		{ test: /underscore/, loader: 'expose-loader?_' },
 //    		{ test: /backbone/, loader: 'expose-loader?Backbone!imports-loader?underscore,jquery,this=>window' },
-    		{ test: /glue/, loader: 'expose-loader?gluejs!imports-loader?Backbone=backbone,_=underscore,jquery,this=>window' }
+    		{ test: /backbone/, loader: 'imports-loader?underscore,jquery' },
+    		{ test: /glue/, loader: 'imports-loader?Backbone=backbone,_=underscore,jquery,this=>window' }
 
     		// Demo
-//    		{ test: require.resolve('./js/libs/glue'), loader: 'expose-loader?gluej!imports-loader?Backbone=backbone,_=underscore,jquery'},
-//    		{ test: /glue/, loader: 'expose-loader?GlueJS!imports-loader?Backbone=backbone,_=underscore,jquery'},
-//    		{ test: /glue/, loader: 'expose-loader?GlueJS!imports-loader?backbone,underscore,jquery' }
 		]
     },
     resolve: {
@@ -30,12 +28,14 @@ module.exports = {
             backbone    : path.join(__dirname, "./js/libs/backbone.js")
     	}
     },
-//    plugins: [
-//        new webpack.ProvidePlugin({
-//          $: "jquery",
-////          underscore: "underscore"
-//        })
-//    ]
+    plugins: [
+        new webpack.ProvidePlugin({
+        	$: "jquery",
+        	"root.jQuery" : "jquery",
+//          GlueJS: "glue",
+//          underscore: "underscore"
+        })
+    ]
 //    devServer: /*{
 //	  contentBase: path.join(__dirname, "dist"),
 //	  compress: true,
